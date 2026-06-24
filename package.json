@@ -1,0 +1,36 @@
+{
+  "name": "@colliery-io/aurora-dark",
+  "version": "0.1.0",
+  "description": "Aurora Dark — the dark-only design system for Cloacina control-plane UIs: tokens, primitives, and presentational components.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./aurora.css": "./dist/aurora.css"
+  },
+  "files": ["dist"],
+  "sideEffects": ["*.css"],
+  "scripts": {
+    "build": "tsup && node scripts/build-css.mjs",
+    "build:js": "tsup",
+    "build:css": "node scripts/build-css.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@mantine/core": "^7.15.0",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@mantine/core": "7.15.2",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.2"
+  }
+}

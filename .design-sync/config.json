@@ -1,0 +1,19 @@
+{
+  "projectId": "09dbc6cf-2778-4e19-8898-27d88a2e3766",
+  "shape": "package",
+  "pkg": "@colliery-io/aurora-dark",
+  "globalName": "AuroraDS",
+  "buildCmd": "npm run build",
+  "provider": {
+    "component": "MantineProvider",
+    "props": {
+      "forceColorScheme": "dark",
+      "defaultColorScheme": "dark",
+      "theme": { "$ref": "theme" }
+    }
+  },
+  "cssEntry": "dist/aurora.css",
+  "componentSrcMap": { "MantineProvider": null },
+  "overrides": { "AccumulatorTable": { "cardMode": "column" } },
+  "readmeHeader": ".design-sync/conventions.md"
+}
