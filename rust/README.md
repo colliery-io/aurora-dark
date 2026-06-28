@@ -19,9 +19,13 @@ rust/                  # cargo workspace
       tokens.css       #     Aurora Dark tokens (colors, spacing, radii, type scale)
       components.css   #     every component's static chrome
       fonts.css        #     IBM Plex @font-face
+    PATTERNS.md        #   usage guide — when to reach for each component
   leptos-gallery/      # example app rendering every component/widget
   INVENTORY.md         # component inventory
 ```
+
+**New here?** Read `aurora-leptos/PATTERNS.md` — a pick-by-intent usage guide for
+people and AI agents.
 
 ## Consume it
 ```toml

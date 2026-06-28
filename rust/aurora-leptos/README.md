@@ -63,6 +63,9 @@ these. See `../leptos-gallery` for a worked example.
 2. **Runtime injection:** drop `<AuroraStyles/>` once at the app root (or use the
    `AURORA_CSS` const).
 
+**When to use what:** see [`PATTERNS.md`](./PATTERNS.md) — a usage guide (for people
+and AI agents) with a pick-by-intent table and how to choose between similar pieces.
+
 See `../leptos-gallery` for a working example rendering every component and widget.
 
 ## Status
