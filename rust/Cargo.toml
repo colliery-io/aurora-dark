@@ -1,0 +1,12 @@
+# Workspace for the Aurora Dark Leptos design system + its gallery example.
+[workspace]
+resolver = "2"
+members = ["aurora-leptos", "leptos-gallery"]
+
+# Release profile tuned for small wasm (applies to workspace members).
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
