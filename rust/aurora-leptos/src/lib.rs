@@ -22,36 +22,51 @@
 //!
 //! Genuinely app-specific surfaces (e.g. cloacina's DAG/graph + node views) are
 //! built downstream from these primitives, not shipped here.
-//! - **Stylesheet** — the framework-agnostic CSS, available two ways:
-//!   1. `<link>` the files under this crate's `style/` directory (best for a
-//!      build pipeline like trunk — no FOUT), or
-//!   2. inject at runtime via the [`AuroraStyles`] component or the [`AURORA_CSS`]
-//!      const (for consumers without a CSS build step).
+//!
+//! ## Stylesheet
+//! The recommended path is a **real `<link>`ed stylesheet** (render-blocking → no
+//! flash of unstyled content). Since the CSS ships inside this crate, emit it into
+//! your project at build time from `build.rs`, then link it:
 //!
 //! ```ignore
-//! use aurora_leptos::{AuroraStyles, components::*, tokens::token};
-//! view! {
-//!     <AuroraStyles/>                 // or <link> the style/*.css files
-//!     <Button>"Run"</Button>
-//!     <Pill color=token::ICE>"accumulator"</Pill>
+//! // build.rs  (aurora-leptos in [build-dependencies], default-features = false)
+//! fn main() {
+//!     aurora_leptos::write_css(std::path::Path::new("style")).unwrap();
 //! }
+//! // index.html:  <link data-trunk rel="css" href="style/aurora.css" />
+//! ```
+//!
+//! For quick/CSR-only setups you can instead inject at runtime with
+//! [`AuroraStyles`] (or the [`AURORA_CSS`] const), at the cost of a possible
+//! first-paint flash.
+//!
+//! ```ignore
+//! use aurora_leptos::{components::*, tokens::token};
+//! view! { <Button>"Run"</Button> <Pill color=token::ICE>"tag"</Pill> }
 //! ```
 
-pub mod components;
-pub mod graph;
+// Pure logic (no renderer) — always available.
 pub mod tokens;
-pub mod widgets;
-
-// Flat re-exports for ergonomic `use aurora_leptos::*;`.
-pub use components::*;
-pub use graph::*;
 pub use tokens::*;
+
+// UI surface — requires the `components` feature (the default).
+#[cfg(feature = "components")]
+pub mod components;
+#[cfg(feature = "components")]
+pub mod graph;
+#[cfg(feature = "components")]
+pub mod widgets;
+#[cfg(feature = "components")]
+pub use components::*;
+#[cfg(feature = "components")]
+pub use graph::*;
+#[cfg(feature = "components")]
 pub use widgets::*;
 
-use leptos::prelude::*;
+// ---- Stylesheet (available with or without the `components` feature) ----
 
 /// The full Aurora Dark stylesheet (IBM Plex `@font-face` + tokens + component
-/// chrome), concatenated at compile time. Inject once at your app root.
+/// chrome), concatenated at compile time.
 pub const AURORA_CSS: &str = concat!(
     include_str!("../style/fonts.css"),
     "\n",
@@ -67,10 +82,28 @@ pub const COMPONENTS_CSS: &str = include_str!("../style/components.css");
 /// Just the IBM Plex `@font-face` declarations.
 pub const FONTS_CSS: &str = include_str!("../style/fonts.css");
 
-/// Injects the complete Aurora Dark stylesheet as an inline `<style>`. Drop once
-/// at the app root. Prefer `<link>`-ing the `style/*.css` files when you have a
-/// build pipeline (avoids a flash of unstyled fonts); use this otherwise.
-#[component]
-pub fn AuroraStyles() -> impl IntoView {
-    view! { <style>{AURORA_CSS}</style> }
+/// Writes the full stylesheet to `dir/aurora.css` and returns the path. Call from
+/// a consumer's `build.rs` (with `default-features = false`, so leptos isn't built
+/// for the host) to ship Aurora Dark as a normal, render-blocking stylesheet.
+pub fn write_css(dir: &std::path::Path) -> std::io::Result<std::path::PathBuf> {
+    std::fs::create_dir_all(dir)?;
+    let path = dir.join("aurora.css");
+    std::fs::write(&path, AURORA_CSS)?;
+    Ok(path)
 }
+
+/// Injects the complete stylesheet as an inline `<style>` (runtime fallback for
+/// CSR-only setups). Prefer a build-time `<link>` (see [`write_css`]) to avoid a
+/// first-paint flash.
+#[cfg(feature = "components")]
+mod styles {
+    use super::AURORA_CSS;
+    use leptos::prelude::*;
+
+    #[component]
+    pub fn AuroraStyles() -> impl IntoView {
+        view! { <style>{AURORA_CSS}</style> }
+    }
+}
+#[cfg(feature = "components")]
+pub use styles::AuroraStyles;

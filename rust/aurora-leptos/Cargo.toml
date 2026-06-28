@@ -5,14 +5,22 @@ edition = "2021"
 license = "Apache-2.0"
 description = "Aurora Dark — Colliery's general dark design system for Leptos: the core that control-plane apps are built from (components, tokens, stylesheet)."
 
-# Ship the stylesheet with the crate so consumers can either <link> the files or
-# inject them via `AuroraStyles` / the CSS consts.
+# Ship the stylesheet with the crate so build.rs can emit it (write_css) and the
+# CSS consts are available.
 include = ["src/**/*.rs", "style/*.css", "README.md", "PATTERNS.md"]
 
+[features]
+# `components` (default) pulls leptos + the UI. Disable it (default-features=false)
+# for a tiny, leptos-free build that still exposes `write_css` + the CSS consts —
+# use that in [build-dependencies] to emit a normal stylesheet at build time.
+default = ["components"]
+components = ["dep:leptos", "dep:web-sys", "dep:js-sys"]
+
 [dependencies]
-# No renderer feature here — the consuming binary selects csr/hydrate/ssr.
-leptos = { version = "0.8", default-features = false }
+# Renderer-agnostic; the consuming binary selects csr/hydrate/ssr. Optional so the
+# build-script use (write_css) doesn't compile leptos for the host.
+leptos = { version = "0.8", default-features = false, optional = true }
 # Clipboard copy button.
-web-sys = { version = "0.3", features = ["Window", "Navigator", "Clipboard"] }
+web-sys = { version = "0.3", features = ["Window", "Navigator", "Clipboard"], optional = true }
 # "Time ago" / freshness helpers (Date.now) for the data-display widgets.
-js-sys = "0.3"
+js-sys = { version = "0.3", optional = true }

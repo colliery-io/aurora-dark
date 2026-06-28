@@ -46,39 +46,47 @@ crate in this repo's subdirectory automatically.
 
 ```toml
 [dependencies]
-# Pin to an immutable commit (recommended for shipped software):
+# Components + tokens. Pin an immutable rev (or tag) for reproducible builds.
 aurora-leptos = { git = "https://github.com/colliery-io/aurora-dark", rev = "<commit-sha>" }
-# ...or a release tag once cut:           tag = "aurora-leptos-v0.1.0"
-# ...or, inside this monorepo:            path = "rust/aurora-leptos"
+leptos = { version = "0.8", features = ["csr"] }   # match 0.8.x; binary picks the renderer
 
-# Your binary selects the renderer; match the leptos minor (0.8.x):
-leptos = { version = "0.8", features = ["csr"] }
+# Emit the stylesheet at build time. default-features=false → leptos is NOT
+# compiled for the host, so this stays a fast, tiny build-dep.
+[build-dependencies]
+aurora-leptos = { git = "https://github.com/colliery-io/aurora-dark", rev = "<commit-sha>", default-features = false }
 ```
 
 ```rust
-use aurora_leptos::{AuroraStyles, components::*, widgets::*, graph::*, tokens::token};
-
-#[component]
-fn App() -> impl IntoView {
-    view! {
-        <AuroraStyles/>            // bakes the stylesheet into the wasm (see below)
-        <PageHeader title="My app" sub="…"/>
-        <Button>"Run"</Button>
-    }
+// build.rs — materialise the stylesheet into the project (gitignore it).
+fn main() {
+    aurora_leptos::write_css(std::path::Path::new("style")).unwrap();  // -> style/aurora.css
 }
 ```
 
-**Stylesheet delivery (the one gotcha).** When consumed as a git/registry dep you
-can't reliably `<link>` the crate's `style/*.css` — they live in cargo's checkout
-cache. Instead render **`<AuroraStyles/>`** once at the root: it `include_str!`s the
-full stylesheet into your binary, so styling travels with the compiled artifact and
-needs no asset wiring. (`<link>`-ing the files is only convenient in a path/monorepo
-setup; the `AURORA_CSS` const is also exposed if you want to inject it yourself.)
-Fonts load from Google Fonts at runtime — self-host them if you ship fully offline.
+```html
+<!-- index.html (trunk): a real, render-blocking stylesheet — no flash -->
+<link data-trunk rel="css" href="style/aurora.css" />
+```
+(cargo-leptos: point `[package.metadata.leptos] style-file = "style/aurora.css"` at it.)
 
-Prefer `rev`/`tag` over `branch` for reproducible builds. See
-`aurora-leptos/PATTERNS.md` for which component to use, and `aurora-leptos/README.md`
-for the API.
+```rust
+use aurora_leptos::{components::*, widgets::*, graph::*, tokens::token};
+// build your UI; styling comes from the linked stylesheet.
+```
+
+**Why the build step.** As a git/registry dep the crate's `style/*.css` lives in
+cargo's checkout cache, so you can't `<link>` it directly. `write_css` copies the
+bundled stylesheet into your project at build time; linking it in `<head>` is
+render-blocking, so there's **no flash of unstyled content** (important under
+SSR/hydration). Fonts load from Google Fonts at runtime — self-host if you ship
+fully offline.
+
+**Runtime fallback (CSR-only, simplest).** Skip `build.rs` and render
+`<AuroraStyles/>` once at the app root — it `include_str!`s the CSS into the wasm
+and injects it at runtime (zero asset wiring, but a possible first-paint flash).
+
+Prefer `rev`/`tag` over `branch`. See `aurora-leptos/PATTERNS.md` for which
+component to use, and `aurora-leptos/README.md` for the API.
 
 ## Build & run the gallery
 ```

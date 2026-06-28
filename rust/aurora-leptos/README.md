@@ -54,14 +54,19 @@ accumulators→inputs, and its DAG/graph + node views) are built downstream from
 these. See `../leptos-gallery` for a worked example.
 
 ## Styling: two ways
-1. **Build pipeline (recommended):** `<link>` the files (trunk example):
-   ```html
-   <link data-trunk rel="css" href="../aurora-leptos/style/fonts.css" />
-   <link data-trunk rel="css" href="../aurora-leptos/style/tokens.css" />
-   <link data-trunk rel="css" href="../aurora-leptos/style/components.css" />
+1. **Linked stylesheet (recommended — no flash).** Add `aurora-leptos` to
+   `[build-dependencies]` with `default-features = false` and emit the CSS in
+   `build.rs`, then `<link>` it (render-blocking, so no FOUC):
+   ```rust
+   // build.rs
+   fn main() { aurora_leptos::write_css(std::path::Path::new("style")).unwrap(); }
    ```
-2. **Runtime injection:** drop `<AuroraStyles/>` once at the app root (or use the
-   `AURORA_CSS` const).
+   ```html
+   <link data-trunk rel="css" href="style/aurora.css" />
+   ```
+   (In a path/monorepo setup you can instead link the crate's `style/*.css` directly.)
+2. **Runtime injection (CSR-only, simplest):** drop `<AuroraStyles/>` once at the
+   app root (or use the `AURORA_CSS` const) — injects at runtime, possible flash.
 
 **When to use what:** see [`PATTERNS.md`](./PATTERNS.md) — a usage guide (for people
 and AI agents) with a pick-by-intent table and how to choose between similar pieces.
