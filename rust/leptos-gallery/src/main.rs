@@ -3,6 +3,7 @@
 //! as a downstream route port would.
 
 use aurora_leptos::components::*;
+use aurora_leptos::graph::*;
 use aurora_leptos::tokens::{token, ApiError};
 use aurora_leptos::widgets::*;
 use leptos::prelude::*;
@@ -13,16 +14,60 @@ fn main() {
 
 #[component]
 fn Section(
+    #[prop(into)] id: String,
     #[prop(into)] title: String,
     #[prop(into)] caption: String,
     children: Children,
 ) -> impl IntoView {
     view! {
-        <section class="gallery__section">
+        <section id=id class="gallery__section">
             <div class="gallery__section-title">{title}</div>
             <p class="gallery__caption">{caption}</p>
             {children()}
         </section>
+    }
+}
+
+/// Left-nav: (anchor id, label). Groups are rendered from the `group` marker.
+const NAV: &[(&str, &str)] = &[
+    ("§Components", ""),
+    ("buttons", "Button"),
+    ("layout", "Box · Group · Stack · Text"),
+    ("pills", "Pill · StatusBadge · Dot"),
+    ("table", "Table"),
+    ("forms", "TextInput · Select · Tooltip"),
+    ("chips", "Chip"),
+    ("panel-modal", "Panel · Modal"),
+    ("states", "Loading · Empty · ErrorState"),
+    ("more-inputs", "Switch · Number · Password · …"),
+    ("layout-prims", "SimpleGrid · Grid · List"),
+    ("menu-appshell", "Menu · AppShell"),
+    ("§Widgets", ""),
+    ("badges", "StateCounts · BuildStatus · HealthPill · Meter"),
+    ("banners", "Banner · StaleInputsBanner"),
+    ("readiness", "NodeReadiness"),
+    ("input-table", "InputTable"),
+    ("§Graph", ""),
+    ("graph", "Graph / DAG"),
+];
+
+#[component]
+fn Nav() -> impl IntoView {
+    let items = NAV
+        .iter()
+        .map(|(id, label)| {
+            if let Some(group) = id.strip_prefix('§') {
+                view! { <div class="gallery-nav__group">{group}</div> }.into_any()
+            } else {
+                view! { <a class="gallery-nav__link" href=format!("#{id}")>{*label}</a> }.into_any()
+            }
+        })
+        .collect_view();
+    view! {
+        <nav class="gallery-nav">
+            <div class="gallery-nav__title">"Aurora Dark"</div>
+            {items}
+        </nav>
     }
 }
 
@@ -81,6 +126,19 @@ fn App() -> impl IntoView {
         StateCount { label: "failed".into(), count: 1, color: token::BAD.into() },
         StateCount { label: "scheduled".into(), count: 1, color: token::VIOLET.into() },
     ];
+    let g_nodes = vec![
+        GraphNode::new("orders", "orders.events").color(token::ICE).sublabel("source"),
+        GraphNode::new("clicks", "clicks.stream").color(token::ICE).sublabel("source"),
+        GraphNode::new("rollup", "rollup").color(token::VIOLET).sublabel("node"),
+        GraphNode::new("warehouse", "warehouse").color(token::TEAL).sublabel("sink"),
+    ];
+    let g_edges = vec![
+        GraphEdge::new("orders", "rollup").active(true),
+        GraphEdge::new("clicks", "rollup"),
+        GraphEdge::new("rollup", "warehouse"),
+    ];
+    let g_nodes_lr = g_nodes.clone();
+    let g_edges_lr = g_edges.clone();
 
     let rows = [
         ("exec_7f3a01", "completed", "1.2s", "12:02:11"),
@@ -120,7 +178,9 @@ fn App() -> impl IntoView {
         .collect_view();
 
     view! {
-        <div class="gallery">
+        <div class="gallery-shell">
+            <Nav />
+            <main class="gallery-main">
             <PageHeader
                 title="Aurora Dark"
                 sub="leptos · wasm — aurora-leptos component gallery"
@@ -136,7 +196,7 @@ fn App() -> impl IntoView {
             </p>
 
             // ---- Buttons ----
-            <Section title="Button" caption="variants: filled · light · default · subtle — sizes xs/sm/md — danger — disabled">
+            <Section id="buttons" title="Button" caption="variants: filled · light · default · subtle — sizes xs/sm/md — danger — disabled">
                 <Group wrap=true>
                     <Button>"Filled"</Button>
                     <Button variant="light">"Light"</Button>
@@ -154,7 +214,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Layout + Text ----
-            <Section title="Box · Group · Stack · Text · MONO" caption="layout primitives + the type helpers">
+            <Section id="layout" title="Box · Group · Stack · Text · MONO" caption="layout primitives + the type helpers">
                 <div class="gallery__card">
                     <Stack gap="sm">
                         <Text bright=true bold=true size="lg">"Heading — fg-bright 18/600"</Text>
@@ -170,7 +230,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Pills / StatusBadge / Dot ----
-            <Section title="Pill · StatusBadge · Dot" caption="status hue at full strength on a 1c-alpha tint — radius 10, Plex Mono">
+            <Section id="pills" title="Pill · StatusBadge · Dot" caption="status hue at full strength on a 1c-alpha tint — radius 10, Plex Mono">
                 <Group wrap=true>
                     <StatusBadge status="running" />
                     <StatusBadge status="completed" />
@@ -194,7 +254,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Table ----
-            <Section title="Table" caption="executions — mono cells, hairline rows, uppercase header">
+            <Section id="table" title="Table" caption="executions — mono cells, hairline rows, uppercase header">
                 <div class="gallery__card">
                     <table class="cl-table cl-table--mono">
                         <thead>
@@ -206,7 +266,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Forms ----
-            <Section title="TextInput · Select · Tooltip" caption="form controls + hover tooltip">
+            <Section id="forms" title="TextInput · Select · Tooltip" caption="form controls + hover tooltip">
                 <div class="gallery__card">
                     <Stack>
                         <TextInput label="Schedule name" placeholder="e.g. nightly-ingest" value=name />
@@ -223,12 +283,12 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Chips ----
-            <Section title="Chip (filter)" caption="active = ice fill + dark text; inactive = panel + border">
+            <Section id="chips" title="Chip (filter)" caption="active = ice fill + dark text; inactive = panel + border">
                 <Group gap="sm" wrap=true>{chip_views}</Group>
             </Section>
 
             // ---- Panel + Modal ----
-            <Section title="Panel · Modal" caption="card surface with section header; overlay modal">
+            <Section id="panel-modal" title="Panel · Modal" caption="card surface with section header; overlay modal">
                 <Group top=true wrap=true>
                     <div style="flex:1;min-width:320px;">
                         <Panel title="Recent executions" caption="last 24h">
@@ -260,7 +320,7 @@ fn App() -> impl IntoView {
             </Modal>
 
             // ---- States ----
-            <Section title="Loading · Empty · ErrorState" caption="every async view uses these — no blank screens, errors render by classified kind">
+            <Section id="states" title="Loading · Empty · ErrorState" caption="every async view uses these — no blank screens, errors render by classified kind">
                 <Group top=true wrap=true>
                     <div class="gallery__card" style="flex:1;min-width:240px;"><Loading /></div>
                     <div class="gallery__card" style="flex:1;min-width:240px;"><Empty message="No executions in the last 24 hours." /></div>
@@ -279,7 +339,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- More form controls ----
-            <Section title="Switch · SegmentedControl · NumberInput · PasswordInput · Textarea · CopyButton · ActionIcon" caption="the rest of the Mantine input primitives">
+            <Section id="more-inputs" title="Switch · SegmentedControl · NumberInput · PasswordInput · Textarea · CopyButton · ActionIcon" caption="the rest of the Mantine input primitives">
                 <div class="gallery__card">
                     <Stack>
                         <Group gap="sm" wrap=true>
@@ -298,7 +358,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Layout primitives ----
-            <Section title="Box · SimpleGrid · Grid · List · Table · Divider" caption="layout + structural primitives">
+            <Section id="layout-prims" title="Box · SimpleGrid · Grid · List · Table · Divider" caption="layout + structural primitives">
                 <div class="gallery__card">
                     <Stack>
                         <SimpleGrid cols=3>
@@ -335,7 +395,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Menu + AppShell ----
-            <Section title="Menu · AppShell" caption="dropdown menu and the app scaffold">
+            <Section id="menu-appshell" title="Menu · AppShell" caption="dropdown menu and the app scaffold">
                 <Group top=true wrap=true>
                     <Menu label="Actions">
                         <div class="cl-menu__label">"Run"</div>
@@ -376,7 +436,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Widgets: StateCounts · BuildStatusBadge · HealthPill · Meter ----
-            <Section title="StateCounts · BuildStatusBadge · HealthPill · Meter" caption="generic data-display widgets — the app supplies labels/colors">
+            <Section id="badges" title="StateCounts · BuildStatusBadge · HealthPill · Meter" caption="generic data-display widgets — the app supplies labels/colors">
                 <Group gap="sm" wrap=true>
                     <StateCounts counts=run_counts />
                 </Group>
@@ -399,7 +459,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Widgets: Banner · StaleInputsBanner ----
-            <Section title="Banner · StaleInputsBanner" caption="generic callout; stale-inputs convenience built on it">
+            <Section id="banners" title="Banner · StaleInputsBanner" caption="generic callout; stale-inputs convenience built on it">
                 <Stack gap="sm">
                     <Banner color=token::ICE icon="ℹ">"Heads up — a generic info banner."</Banner>
                     <Banner>"A warning banner (default gold accent)."</Banner>
@@ -409,7 +469,7 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Widgets: NodeReadiness ----
-            <Section title="NodeReadiness" caption="trigger description + per-input freshness + ready/waiting summary">
+            <Section id="readiness" title="NodeReadiness" caption="trigger description + per-input freshness + ready/waiting summary">
                 <NodeReadiness
                     node="rollup"
                     mode_label="all"
@@ -421,13 +481,28 @@ fn App() -> impl IntoView {
             </Section>
 
             // ---- Widgets: InputTable ----
-            <Section title="InputTable" caption="per-input state, last event, rate, freshness Meter, row action">
+            <Section id="input-table" title="InputTable" caption="per-input state, last event, rate, freshness Meter, row action">
                 <div class="gallery__card">
                     <Panel title="Input freshness" caption="rollup">
                         <InputTable inputs=mixed_inputs_table on_action=Callback::new(|_name: String| {}) action_label="push ▸" />
                     </Panel>
                 </div>
             </Section>
+
+            // ---- Graph / DAG ----
+            <Section id="graph" title="Graph / DAG" caption="generic node + edge drawing primitives with a built-in layered layout">
+                <Group top=true wrap=true gap="sm">
+                    <div class="gallery__card" style="overflow:auto;">
+                        <div class="gallery__caption">"direction = TB (default)"</div>
+                        <Graph nodes=g_nodes edges=g_edges />
+                    </div>
+                    <div class="gallery__card" style="overflow:auto;">
+                        <div class="gallery__caption">"direction = LR"</div>
+                        <Graph nodes=g_nodes_lr edges=g_edges_lr direction="LR" />
+                    </div>
+                </Group>
+            </Section>
+            </main>
         </div>
     }
 }

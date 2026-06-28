@@ -347,9 +347,14 @@ pub fn ErrorState(error: ApiError, #[prop(optional)] on_retry: Option<Callback<(
                 <Text size="sm">{c.message}</Text>
                 {code.map(|code| view! { <Text size="xs" dimmed=true>{format!("code: {code}")}</Text> })}
                 {c.retryable.then(|| view! {
-                    <Button variant="light" size="xs" on_click=Callback::new(move |_| { if let Some(cb) = on_retry { cb.run(()); } })>
+                    // tinted to the alert color (inherits --alert-color) — no blue/red clash
+                    <button
+                        class="cl-btn cl-btn--xs cl-btn--alert"
+                        style="width:fit-content;"
+                        on:click=move |_| { if let Some(cb) = on_retry { cb.run(()); } }
+                    >
                         "Retry"
-                    </Button>
+                    </button>
                 })}
             </Stack>
         </div>
@@ -554,7 +559,22 @@ pub fn PasswordInput(
                     title="Toggle visibility"
                     on:click=move |_| reveal.update(|v| *v = !*v)
                 >
-                    {move || if reveal.get() { "🙈" } else { "👁" }}
+                    {move || if reveal.get() {
+                        view! {
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10.585 10.587a2 2 0 0 0 2.829 2.828" />
+                                <path d="M16.681 16.673a8.717 8.717 0 0 1 -4.681 1.327c-4 0 -7.333 -2.333 -10 -7c1.21 -2.12 2.554 -3.685 4.032 -4.692m3.96 -1.051a8.86 8.86 0 0 1 2.008 -.157c4 0 7.333 2.333 10 7c-.474 .83 -.969 1.542 -1.486 2.139" />
+                                <path d="M3 3l18 18" />
+                            </svg>
+                        }.into_any()
+                    } else {
+                        view! {
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="2" />
+                                <path d="M22 12c-2.667 4.667 -6 7 -10 7s-7.333 -2.333 -10 -7c2.667 -4.667 6 -7 10 -7s7.333 2.333 10 7" />
+                            </svg>
+                        }.into_any()
+                    }}
                 </button>
             </div>
         </div>

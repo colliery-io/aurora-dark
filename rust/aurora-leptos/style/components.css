@@ -135,6 +135,12 @@
 /* color override: bad/danger */
 .cl-btn--bad.cl-btn--filled { background: var(--bad); color: #1a0d0d; }
 .cl-btn--bad.cl-btn--light  { background: color-mix(in srgb, var(--bad) 16%, transparent); color: var(--bad); }
+/* variant: alert — tinted to the surrounding alert's --alert-color (no blue clash) */
+.cl-btn--alert {
+  background: color-mix(in srgb, var(--alert-color, var(--bad)) 16%, transparent);
+  color: var(--alert-color, var(--bad));
+}
+.cl-btn--alert:hover { background: color-mix(in srgb, var(--alert-color, var(--bad)) 26%, transparent); }
 
 /* ActionIcon — square icon-only button. */
 .cl-action-icon {
@@ -182,6 +188,12 @@
 .cl-input:disabled { opacity: 0.5; cursor: not-allowed; }
 .cl-input--error { border-color: var(--bad); }
 textarea.cl-input { height: auto; padding: 8px 12px; line-height: 1.5; resize: vertical; }
+/* Masked text uses the browser's bullet glyph; render it from a system font
+   (IBM Plex's loaded subset omits it, which shows as empty boxes). */
+.cl-input[type="password"] {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  letter-spacing: 0.18em;
+}
 
 /* Select — native <select> styled to match, with a chevron. */
 .cl-select {
@@ -604,3 +616,15 @@ textarea.cl-input { height: auto; padding: 8px 12px; line-height: 1.5; resize: v
 .cl-input-table__cell-mono { font-family: var(--font-mono); font-size: 11.5px; }
 .cl-input-table__action { font-family: var(--font-mono); font-size: 10px; padding: 3px 8px; border-radius: 7px; cursor: pointer; border: 1px solid var(--border-control); background: var(--panel); color: var(--ice); justify-self: end; }
 .cl-input-table__error { font-family: var(--font-mono); font-size: 11px; margin-top: 4px; }
+
+/* ============================================================
+   Graph / DAG drawing primitives
+   ============================================================ */
+.cl-graph { display: block; max-width: 100%; height: auto; }
+.cl-graph__edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+.cl-graph__edge--active { stroke: var(--ice); }
+.cl-graph__arrow { fill: var(--edge); }
+.cl-graph__arrow--active { fill: var(--ice); }
+.cl-graph__node { fill: var(--panel-2); stroke: var(--border); stroke-width: 1.5; }
+.cl-graph__label { fill: var(--fg); font-family: var(--font-sans); font-size: 12.5px; }
+.cl-graph__sublabel { fill: var(--faint); font-family: var(--font-mono); font-size: 9.5px; }

@@ -15,6 +15,8 @@
 //!   `InputTable`, `StaleInputsBanner`, plus the `Input` model and
 //!   `format_ago`/`is_stale`/`freshness_pct` helpers. Apps supply their own state
 //!   labels/colors as data — no built-in vocab or branding.
+//! - **Graph** ([`graph`]) — generic graph/DAG drawing primitives: `GraphNode`,
+//!   `GraphEdge`, a dependency-free layered layout, and an SVG `Graph` component.
 //! - **Tokens + pure logic** ([`tokens`]) — semantic palette, `status_color`,
 //!   `pill_bg`, and `ApiError` error classification. Framework-agnostic Rust.
 //!
@@ -36,11 +38,13 @@
 //! ```
 
 pub mod components;
+pub mod graph;
 pub mod tokens;
 pub mod widgets;
 
 // Flat re-exports for ergonomic `use aurora_leptos::*;`.
 pub use components::*;
+pub use graph::*;
 pub use tokens::*;
 pub use widgets::*;
 
