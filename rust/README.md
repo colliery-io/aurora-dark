@@ -40,16 +40,45 @@ rust/                  # cargo workspace
 people and AI agents.
 
 ## Consume it
+
+Distributed as a **git dependency** (no registry publish needed). Cargo finds the
+crate in this repo's subdirectory automatically.
+
 ```toml
 [dependencies]
-aurora-leptos = { path = "../aurora-leptos" }
-leptos = { version = "0.8", features = ["csr"] }   # the binary picks the renderer
+# Pin to an immutable commit (recommended for shipped software):
+aurora-leptos = { git = "https://github.com/colliery-io/aurora-dark", rev = "<commit-sha>" }
+# ...or a release tag once cut:           tag = "aurora-leptos-v0.1.0"
+# ...or, inside this monorepo:            path = "rust/aurora-leptos"
+
+# Your binary selects the renderer; match the leptos minor (0.8.x):
+leptos = { version = "0.8", features = ["csr"] }
 ```
+
 ```rust
-use aurora_leptos::{components::*, tokens::token};
-// <link> aurora-leptos/style/*.css, or drop <AuroraStyles/> at the app root.
+use aurora_leptos::{AuroraStyles, components::*, widgets::*, graph::*, tokens::token};
+
+#[component]
+fn App() -> impl IntoView {
+    view! {
+        <AuroraStyles/>            // bakes the stylesheet into the wasm (see below)
+        <PageHeader title="My app" sub="…"/>
+        <Button>"Run"</Button>
+    }
+}
 ```
-See `aurora-leptos/README.md` for the full API.
+
+**Stylesheet delivery (the one gotcha).** When consumed as a git/registry dep you
+can't reliably `<link>` the crate's `style/*.css` — they live in cargo's checkout
+cache. Instead render **`<AuroraStyles/>`** once at the root: it `include_str!`s the
+full stylesheet into your binary, so styling travels with the compiled artifact and
+needs no asset wiring. (`<link>`-ing the files is only convenient in a path/monorepo
+setup; the `AURORA_CSS` const is also exposed if you want to inject it yourself.)
+Fonts load from Google Fonts at runtime — self-host them if you ship fully offline.
+
+Prefer `rev`/`tag` over `branch` for reproducible builds. See
+`aurora-leptos/PATTERNS.md` for which component to use, and `aurora-leptos/README.md`
+for the API.
 
 ## Build & run the gallery
 ```
