@@ -1,0 +1,18 @@
+[package]
+name = "aurora-leptos"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Aurora Dark — Colliery's general dark design system for Leptos: the core that control-plane apps are built from (components, tokens, stylesheet)."
+
+# Ship the stylesheet with the crate so consumers can either <link> the files or
+# inject them via `AuroraStyles` / the CSS consts.
+include = ["src/**/*.rs", "style/*.css", "README.md"]
+
+[dependencies]
+# No renderer feature here — the consuming binary selects csr/hydrate/ssr.
+leptos = { version = "0.8", default-features = false }
+# Clipboard copy button.
+web-sys = { version = "0.3", features = ["Window", "Navigator", "Clipboard"] }
+# "Time ago" / freshness helpers (Date.now) for the data-display widgets.
+js-sys = "0.3"

@@ -1,0 +1,12 @@
+[package]
+name = "aurora-leptos-gallery"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Component gallery / example app for the aurora-leptos design system."
+
+[dependencies]
+aurora-leptos = { path = "../aurora-leptos" }
+# The binary selects the renderer (csr); this also turns on csr for aurora-leptos.
+leptos = { version = "0.8", features = ["csr"] }
+js-sys = "0.3"   # demo timestamps (Date.now) for the domain components
