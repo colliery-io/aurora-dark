@@ -6,6 +6,18 @@ as a reusable Rust/WASM crate. It's the core that control-plane apps (cloacina
 included) are built from; app-specific vocab, colors, and branding are supplied
 as data, not shipped.
 
+## When to use this
+Reach for `aurora-leptos` when you're building a **dark, control-plane / dashboard
+Leptos UI** for a Colliery project and want the chrome handled: design tokens, the
+full primitive set (layout, inputs, overlays, tables), async-state components
+(`Loading`/`Empty`/`ErrorState`), data-display widgets (status pills, freshness
+meters, readiness panels), and graph/DAG drawing — so you build screens, not a
+component library. You supply the meaning (state→color/label maps, copy, branding)
+as data. **Not** the right fit for light-themed UIs, non-Leptos stacks, or a
+general public-facing marketing site. See
+[`aurora-leptos/PATTERNS.md`](./aurora-leptos/PATTERNS.md) for which component to
+reach for, task by task.
+
 ## Layout
 ```
 rust/                  # cargo workspace
