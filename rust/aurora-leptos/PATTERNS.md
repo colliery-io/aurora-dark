@@ -9,11 +9,10 @@ pieces** when two options look alike.
 
 ## Core model (read first)
 
-1. **One stylesheet.** Recommended: emit it in `build.rs` via
-   `aurora_leptos::write_css("style".as_ref())` (add the crate to
-   `[build-dependencies]`, `default-features = false`) and `<link>` `style/aurora.css`
-   — render-blocking, no flash. CSR-only quick path: drop `<AuroraStyles/>` once at
-   the root (runtime injection). Without one of these, components render unstyled.
+1. **One stylesheet.** Load it once, one of two ways (see the README's "Styling"
+   for setup): runtime injection via `<AuroraStyles/>` (simplest; possible flash),
+   or a `<link>`ed `style/aurora.css` for no flash (emit it from `build.rs` under
+   cargo-leptos, or a trunk `pre_build` hook). Without one, components render unstyled.
 2. **Dark only.** There is no light theme. Surfaces/text/accents come from CSS
    custom properties (`--bg`, `--panel`, `--fg`, `--ice`, …).
 3. **Use tokens, not raw hex.** In Rust use `token::ICE` etc.; in CSS use

@@ -41,50 +41,51 @@ people and AI agents.
 
 ## Consume it
 
-Distributed as a **git dependency** (no registry publish needed). Cargo finds the
-crate in this repo's subdirectory automatically.
+Git dependency (no registry publish). Cargo finds the crate in this repo's subdir.
 
 ```toml
 [dependencies]
-# Components + tokens. Pin an immutable rev (or tag) for reproducible builds.
 aurora-leptos = { git = "https://github.com/colliery-io/aurora-dark", rev = "<commit-sha>" }
 leptos = { version = "0.8", features = ["csr"] }   # match 0.8.x; binary picks the renderer
-
-# Emit the stylesheet at build time. default-features=false → leptos is NOT
-# compiled for the host, so this stays a fast, tiny build-dep.
-[build-dependencies]
-aurora-leptos = { git = "https://github.com/colliery-io/aurora-dark", rev = "<commit-sha>", default-features = false }
 ```
-
-```rust
-// build.rs — materialise the stylesheet into the project (gitignore it).
-fn main() {
-    aurora_leptos::write_css(std::path::Path::new("style")).unwrap();  // -> style/aurora.css
-}
-```
-
-```html
-<!-- index.html (trunk): a real, render-blocking stylesheet — no flash -->
-<link data-trunk rel="css" href="style/aurora.css" />
-```
-(cargo-leptos: point `[package.metadata.leptos] style-file = "style/aurora.css"` at it.)
-
 ```rust
 use aurora_leptos::{components::*, widgets::*, graph::*, tokens::token};
-// build your UI; styling comes from the linked stylesheet.
 ```
 
-**Why the build step.** As a git/registry dep the crate's `style/*.css` lives in
-cargo's checkout cache, so you can't `<link>` it directly. `write_css` copies the
-bundled stylesheet into your project at build time; linking it in `<head>` is
-render-blocking, so there's **no flash of unstyled content** (important under
-SSR/hydration). Fonts load from Google Fonts at runtime — self-host if you ship
-fully offline.
+### Styling — pick one
+The stylesheet ships inside the crate, so you either inject it at runtime or
+materialise it as a file at build time. `write_css`/the `aurora-css` helper are
+**leptos-free** (`default-features = false`), so the build step never compiles
+leptos for the host.
 
-**Runtime fallback (CSR-only, simplest).** Skip `build.rs` and render
-`<AuroraStyles/>` once at the app root — it `include_str!`s the CSS into the wasm
-and injects it at runtime (zero asset wiring, but a possible first-paint flash).
+- **Runtime (simplest, any toolchain).** Render `<AuroraStyles/>` once at the app
+  root — it `include_str!`s the CSS into the wasm and injects a `<style>`. Zero
+  build config; trade-off is a possible first-paint flash (matters most under SSR).
 
+- **Linked stylesheet, no flash — trunk.** A `<head>` `<link>` is render-blocking
+  (no flash), but trunk validates assets *before* building, so a `build.rs` can't
+  emit the file in time. Generate it in a **`pre_build` hook** instead:
+  ```toml
+  # Trunk.toml — install the helper once:
+  #   cargo install --git https://github.com/colliery-io/aurora-dark \
+  #     aurora-leptos --no-default-features --features bin
+  [[hooks]]
+  stage = "pre_build"
+  command = "aurora-css"
+  command_arguments = ["style"]      # writes style/aurora.css
+  ```
+  ```html
+  <link data-trunk rel="css" href="style/aurora.css" />
+  ```
+  (In a workspace that *contains* aurora-leptos, skip the install and run it via
+  `cargo run -p aurora-leptos … --bin aurora-css` — see `leptos-gallery/Trunk.toml`,
+  which dogfoods exactly this.)
+
+- **Linked stylesheet — cargo-leptos.** It builds the crate before processing
+  styles, so `aurora_leptos::write_css(...)` from a `build.rs` works there; point
+  `[package.metadata.leptos] style-file` at the output.
+
+Fonts load from Google Fonts at runtime — self-host if you ship fully offline.
 Prefer `rev`/`tag` over `branch`. See `aurora-leptos/PATTERNS.md` for which
 component to use, and `aurora-leptos/README.md` for the API.
 

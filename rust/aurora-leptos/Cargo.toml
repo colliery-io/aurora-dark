@@ -15,6 +15,14 @@ include = ["src/**/*.rs", "style/*.css", "README.md", "PATTERNS.md"]
 # use that in [build-dependencies] to emit a normal stylesheet at build time.
 default = ["components"]
 components = ["dep:leptos", "dep:web-sys", "dep:js-sys"]
+# Builds the leptos-free `aurora-css` helper binary (for build hooks).
+bin = []
+
+# `aurora-css <dir>` writes <dir>/aurora.css. Only built with `--features bin`,
+# so normal dependency builds skip it. Run it from a trunk pre_build hook.
+[[bin]]
+name = "aurora-css"
+required-features = ["bin"]
 
 [dependencies]
 # Renderer-agnostic; the consuming binary selects csr/hydrate/ssr. Optional so the

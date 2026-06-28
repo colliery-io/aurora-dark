@@ -53,20 +53,24 @@ palette, or logo. App-specific views (e.g. cloacina's reactors→nodes,
 accumulators→inputs, and its DAG/graph + node views) are built downstream from
 these. See `../leptos-gallery` for a worked example.
 
-## Styling: two ways
-1. **Linked stylesheet (recommended — no flash).** Add `aurora-leptos` to
-   `[build-dependencies]` with `default-features = false` and emit the CSS in
-   `build.rs`, then `<link>` it (render-blocking, so no FOUC):
-   ```rust
-   // build.rs
-   fn main() { aurora_leptos::write_css(std::path::Path::new("style")).unwrap(); }
-   ```
-   ```html
-   <link data-trunk rel="css" href="style/aurora.css" />
-   ```
-   (In a path/monorepo setup you can instead link the crate's `style/*.css` directly.)
-2. **Runtime injection (CSR-only, simplest):** drop `<AuroraStyles/>` once at the
-   app root (or use the `AURORA_CSS` const) — injects at runtime, possible flash.
+## Styling: pick one
+The stylesheet ships inside the crate; inject it at runtime or materialise it as a
+file at build time. `write_css` / the `aurora-css` bin are leptos-free
+(`default-features = false`), so the build step never compiles leptos for the host.
+
+1. **Runtime (simplest):** `<AuroraStyles/>` once at the app root — `include_str!`s
+   the CSS into the wasm. Possible first-paint flash.
+2. **Linked stylesheet, no flash:**
+   - **trunk** validates assets before building, so `build.rs` is too late — emit
+     the file in a `pre_build` hook running the `aurora-css` helper, then
+     `<link data-trunk rel="css" href="style/aurora.css">`. (Install it with
+     `cargo install --git … aurora-leptos --no-default-features --features bin`; in
+     a workspace, `cargo run -p aurora-leptos … --bin aurora-css`. See
+     `../leptos-gallery/Trunk.toml`.)
+   - **cargo-leptos** builds before bundling styles, so calling
+     `write_css(Path::new("style"))` from `build.rs` works; point `style-file` at it.
+
+See the workspace `../README.md` for full snippets.
 
 **When to use what:** see [`PATTERNS.md`](./PATTERNS.md) — a usage guide (for people
 and AI agents) with a pick-by-intent table and how to choose between similar pieces.

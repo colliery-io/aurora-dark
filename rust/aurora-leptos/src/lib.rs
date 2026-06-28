@@ -24,21 +24,14 @@
 //! built downstream from these primitives, not shipped here.
 //!
 //! ## Stylesheet
-//! The recommended path is a **real `<link>`ed stylesheet** (render-blocking → no
-//! flash of unstyled content). Since the CSS ships inside this crate, emit it into
-//! your project at build time from `build.rs`, then link it:
-//!
-//! ```ignore
-//! // build.rs  (aurora-leptos in [build-dependencies], default-features = false)
-//! fn main() {
-//!     aurora_leptos::write_css(std::path::Path::new("style")).unwrap();
-//! }
-//! // index.html:  <link data-trunk rel="css" href="style/aurora.css" />
-//! ```
-//!
-//! For quick/CSR-only setups you can instead inject at runtime with
-//! [`AuroraStyles`] (or the [`AURORA_CSS`] const), at the cost of a possible
-//! first-paint flash.
+//! The CSS ships inside this crate. Two ways to load it (see the workspace README
+//! for full snippets):
+//! - **Runtime:** render [`AuroraStyles`] once at the app root (or inject the
+//!   [`AURORA_CSS`] const). Simplest; possible first-paint flash.
+//! - **Linked stylesheet (no flash):** materialise it as a file and `<link>` it.
+//!   With `cargo-leptos` (builds before bundling), call [`write_css`] from
+//!   `build.rs`. With `trunk` (validates assets before building), generate it in a
+//!   `pre_build` hook via the leptos-free `aurora-css` bin.
 //!
 //! ```ignore
 //! use aurora_leptos::{components::*, tokens::token};
@@ -82,9 +75,10 @@ pub const COMPONENTS_CSS: &str = include_str!("../style/components.css");
 /// Just the IBM Plex `@font-face` declarations.
 pub const FONTS_CSS: &str = include_str!("../style/fonts.css");
 
-/// Writes the full stylesheet to `dir/aurora.css` and returns the path. Call from
-/// a consumer's `build.rs` (with `default-features = false`, so leptos isn't built
-/// for the host) to ship Aurora Dark as a normal, render-blocking stylesheet.
+/// Writes the full stylesheet to `dir/aurora.css` and returns the path. Leptos-free
+/// — call it from `build.rs` (cargo-leptos) or via the `aurora-css` bin in a trunk
+/// `pre_build` hook to ship Aurora Dark as a normal, render-blocking stylesheet.
+/// Use `default-features = false` so leptos isn't built for the host.
 pub fn write_css(dir: &std::path::Path) -> std::io::Result<std::path::PathBuf> {
     std::fs::create_dir_all(dir)?;
     let path = dir.join("aurora.css");
