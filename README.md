@@ -1,5 +1,9 @@
 # Aurora Dark — Leptos design pack (`colliery-io-aurora`)
 
+[![crates.io](https://img.shields.io/crates/v/colliery-io-aurora.svg)](https://crates.io/crates/colliery-io-aurora)
+[![docs.rs](https://docs.rs/colliery-io-aurora/badge.svg)](https://docs.rs/colliery-io-aurora)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
+
 Colliery's **general dark design system for [Leptos](https://leptos.dev)** —
 the Aurora Dark identity (tokens, components, data-display widgets, stylesheet)
 as a reusable Rust/WASM crate. It's the core that control-plane apps (cloacina
@@ -7,7 +11,7 @@ included) are built from; app-specific vocab, colors, and branding are supplied
 as data, not shipped.
 
 ## When to use this
-Reach for `aurora-leptos` when you're building a **dark, control-plane / dashboard
+Reach for `colliery-io-aurora` when you're building a **dark, control-plane / dashboard
 Leptos UI** for a Colliery project and want the chrome handled: design tokens, the
 full primitive set (layout, inputs, overlays, tables), async-state components
 (`Loading`/`Empty`/`ErrorState`), data-display widgets (status pills, freshness
@@ -107,3 +111,11 @@ The **styling layer is plain CSS** (owned by `aurora-leptos/style/`) and the
 **pure logic is plain Rust** (`tokens.rs`). Components are thin Leptos wrappers
 over that — and apps supply their own state labels/colors/branding as data, so
 the pack stays generic.
+
+## Releasing
+Bump `version` in `aurora-leptos/Cargo.toml`, then push a semver tag
+(`git tag v0.x.y && git push --tags`) — CI publishes the crate to crates.io
+(`.github/workflows/publish.yml`).
+
+## License
+[Apache-2.0](./LICENSE)
