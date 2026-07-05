@@ -1,0 +1,25 @@
+# Publishes the colliery-io-aurora crate (rust/aurora-leptos) to crates.io on a
+# semver tag (v0.1.0 or 0.1.0).
+# Requires the CARGO_REGISTRY_TOKEN repo secret: a crates.io API token with
+# publish-new + publish-update scopes.
+name: publish
+
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+      - "[0-9]*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo publish -p colliery-io-aurora
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

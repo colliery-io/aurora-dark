@@ -41,12 +41,21 @@ people and AI agents.
 
 ## Consume it
 
-Git dependency (no registry publish). Cargo finds the crate in this repo's subdir.
+Published on crates.io as **`colliery-io-aurora`** (org-prefixed so we don't claim
+generic names in the flat crates.io namespace); the library is still imported as
+`aurora_leptos`.
 
 ```toml
 [dependencies]
-aurora-leptos = { git = "https://github.com/colliery-io/aurora-dark", rev = "<commit-sha>" }
+colliery-io-aurora = "0.1"
 leptos = { version = "0.8", features = ["csr"] }   # match 0.8.x; binary picks the renderer
+```
+
+Or as a git dependency (Cargo finds the crate in this repo's subdir):
+
+```toml
+[dependencies]
+colliery-io-aurora = { git = "https://github.com/colliery-io/aurora-dark", rev = "<commit-sha>" }
 ```
 ```rust
 use aurora_leptos::{components::*, widgets::*, graph::*, tokens::token};
@@ -67,8 +76,7 @@ leptos for the host.
   emit the file in time. Generate it in a **`pre_build` hook** instead:
   ```toml
   # Trunk.toml — install the helper once:
-  #   cargo install --git https://github.com/colliery-io/aurora-dark \
-  #     aurora-leptos --no-default-features --features bin
+  #   cargo install colliery-io-aurora --no-default-features --features bin
   [[hooks]]
   stage = "pre_build"
   command = "aurora-css"
@@ -77,9 +85,9 @@ leptos for the host.
   ```html
   <link data-trunk rel="css" href="style/aurora.css" />
   ```
-  (In a workspace that *contains* aurora-leptos, skip the install and run it via
-  `cargo run -p aurora-leptos … --bin aurora-css` — see `leptos-gallery/Trunk.toml`,
-  which dogfoods exactly this.)
+  (In a workspace that *contains* the crate, skip the install and run it via
+  `cargo run -p colliery-io-aurora … --bin aurora-css` — see
+  `leptos-gallery/Trunk.toml`, which dogfoods exactly this.)
 
 - **Linked stylesheet — cargo-leptos.** It builds the crate before processing
   styles, so `aurora_leptos::write_css(...)` from a `build.rs` works there; point

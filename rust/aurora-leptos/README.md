@@ -7,9 +7,12 @@ included). Everything is first-class core; nothing is a gated optional add-on. O
 genuinely app-specific surfaces (e.g. cloacina's DAG/graph + node views) are built
 downstream from these primitives.
 
+Published on crates.io as **`colliery-io-aurora`**; the library is imported as
+`aurora_leptos`.
+
 ```toml
 [dependencies]
-aurora-leptos = { path = "../aurora-leptos" }            # or a version once published
+colliery-io-aurora = "0.1"                               # or { path = "../aurora-leptos" } in-workspace
 leptos = { version = "0.8", features = ["csr"] }         # the binary picks the renderer
 ```
 
@@ -64,8 +67,8 @@ file at build time. `write_css` / the `aurora-css` bin are leptos-free
    - **trunk** validates assets before building, so `build.rs` is too late — emit
      the file in a `pre_build` hook running the `aurora-css` helper, then
      `<link data-trunk rel="css" href="style/aurora.css">`. (Install it with
-     `cargo install --git … aurora-leptos --no-default-features --features bin`; in
-     a workspace, `cargo run -p aurora-leptos … --bin aurora-css`. See
+     `cargo install colliery-io-aurora --no-default-features --features bin`; in
+     a workspace, `cargo run -p colliery-io-aurora … --bin aurora-css`. See
      `../leptos-gallery/Trunk.toml`.)
    - **cargo-leptos** builds before bundling styles, so calling
      `write_css(Path::new("style"))` from `build.rs` works; point `style-file` at it.

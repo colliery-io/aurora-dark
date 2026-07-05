@@ -1,13 +1,13 @@
 # Generate the Aurora Dark stylesheet before trunk processes assets, so the
 # <link> in index.html resolves. Dogfoods aurora_leptos::write_css (via the
-# leptos-free `aurora-css` bin). `-p aurora-leptos` works because this gallery is
-# a workspace member; an external consumer would `cargo install` the bin (or use
-# cargo-leptos + build.rs). See the crate README.
+# leptos-free `aurora-css` bin). `-p colliery-io-aurora` works because this
+# gallery is a workspace member; an external consumer would `cargo install` the
+# bin (or use cargo-leptos + build.rs). See the crate README.
 [[hooks]]
 stage = "pre_build"
 command = "cargo"
 command_arguments = [
-  "run", "-q", "-p", "aurora-leptos",
+  "run", "-q", "-p", "colliery-io-aurora",
   "--no-default-features", "--features", "bin",
   "--bin", "aurora-css",
   # Separate target dir so generating the CSS can't churn trunk's wasm build.

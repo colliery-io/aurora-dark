@@ -1,5 +1,8 @@
 //! # Aurora Dark — Colliery's Leptos design system
 //!
+//! Published on crates.io as **`colliery-io-aurora`** (org-prefixed to avoid
+//! claiming generic names); the library itself is imported as `aurora_leptos`.
+//!
 //! A general dark design system for Leptos, reused across Colliery projects. It
 //! is the **core that control-plane apps (cloacina included) are built from** —
 //! everything below is first-class core, not an optional add-on:

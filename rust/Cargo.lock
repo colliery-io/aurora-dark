@@ -87,19 +87,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "aurora-leptos"
-version = "0.1.0"
-dependencies = [
- "js-sys",
- "leptos",
- "web-sys",
-]
-
-[[package]]
 name = "aurora-leptos-gallery"
 version = "0.1.0"
 dependencies = [
- "aurora-leptos",
+ "colliery-io-aurora",
  "js-sys",
  "leptos",
 ]
@@ -165,6 +156,15 @@ name = "collection_literals"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2550f75b8cfac212855f6b1885455df8eaee8fe8e246b647d69146142e016084"
+
+[[package]]
+name = "colliery-io-aurora"
+version = "0.1.0"
+dependencies = [
+ "js-sys",
+ "leptos",
+ "web-sys",
+]
 
 [[package]]
 name = "concurrent-queue"
