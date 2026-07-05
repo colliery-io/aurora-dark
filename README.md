@@ -1,4 +1,4 @@
-# Aurora Dark — Leptos design pack (`aurora-leptos`)
+# Aurora Dark — Leptos design pack (`colliery-io-aurora`)
 
 Colliery's **general dark design system for [Leptos](https://leptos.dev)** —
 the Aurora Dark identity (tokens, components, data-display widgets, stylesheet)
@@ -20,20 +20,19 @@ reach for, task by task.
 
 ## Layout
 ```
-rust/                  # cargo workspace
-  aurora-leptos/       # ★ the design-system crate (the deliverable)
-    src/
-      lib.rs           #   public API: components, tokens, AURORA_CSS / <AuroraStyles/>
-      components.rs    #   core components (primitives)
-      tokens.rs        #   semantic tokens + error classification
-      widgets.rs       #   generic data-display widgets (Meter, Banner, …)
-    style/             #   framework-agnostic stylesheet, shipped with the crate
-      tokens.css       #     Aurora Dark tokens (colors, spacing, radii, type scale)
-      components.css   #     every component's static chrome
-      fonts.css        #     IBM Plex @font-face
-    PATTERNS.md        #   usage guide — when to reach for each component
-  leptos-gallery/      # example app rendering every component/widget
-  INVENTORY.md         # component inventory
+aurora-leptos/       # ★ the design-system crate (published as colliery-io-aurora)
+  src/
+    lib.rs           #   public API: components, tokens, AURORA_CSS / <AuroraStyles/>
+    components.rs    #   core components (primitives)
+    tokens.rs        #   semantic tokens + error classification
+    widgets.rs       #   generic data-display widgets (Meter, Banner, …)
+  style/             #   framework-agnostic stylesheet, shipped with the crate
+    tokens.css       #     Aurora Dark tokens (colors, spacing, radii, type scale)
+    components.css   #     every component's static chrome
+    fonts.css        #     IBM Plex @font-face
+  PATTERNS.md        #   usage guide — when to reach for each component
+leptos-gallery/      # example app rendering every component/widget
+INVENTORY.md         # component inventory
 ```
 
 **New here?** Read `aurora-leptos/PATTERNS.md` — a pick-by-intent usage guide for
