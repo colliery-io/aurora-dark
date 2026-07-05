@@ -1,6 +1,3 @@
-node_modules/
-dist/
-
 # design-sync (staged scripts, build output, machine state)
 .ds-sync/
 ds-bundle/
