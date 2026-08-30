@@ -230,9 +230,18 @@ pub fn Modal(
     view! {
         {move || open.get().then(|| {
             let title = title.clone();
+            let aria_title = title.clone();
             view! {
                 <div class="cl-modal-overlay" on:click=move |_| open.set(false)>
-                    <div class="cl-modal" on:click=|e| e.stop_propagation()>
+                    // ARIA dialog semantics: assistive tech and role-based
+                    // selectors resolve the modal as a dialog named by its title.
+                    <div
+                        class="cl-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label=aria_title.clone()
+                        on:click=|e| e.stop_propagation()
+                    >
                         <div class="cl-modal__header">
                             <span class="cl-modal__title">{title}</span>
                             <button class="cl-modal__close" on:click=move |_| open.set(false)>"×"</button>
