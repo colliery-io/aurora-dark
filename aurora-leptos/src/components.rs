@@ -9,6 +9,16 @@ use leptos::prelude::*;
 
 use crate::tokens::{classify, pill_bg, ApiError};
 
+/// Unique DOM id for label↔control association (`for`/`id`). Accessibility
+/// contract: every labeled field component associates its `<label>` with its
+/// control, so assistive tech — and role/label-based test selectors
+/// (`getByLabel`) — resolve fields by their visible label.
+fn field_id() -> String {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    format!("cl-field-{}", NEXT.fetch_add(1, Ordering::Relaxed))
+}
+
 // ----------------------------------------------------------------------------
 // Layout: Group / Stack
 // ----------------------------------------------------------------------------
@@ -142,10 +152,13 @@ pub fn TextInput(
     }
     let has_label = !label.is_empty();
     let has_error = !error.is_empty();
+    let id = field_id();
+    let label_for = id.clone();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
+            {has_label.then(|| view! { <label class="cl-field__label" for=label_for>{label}</label> })}
             <input
+                id=id
                 class=input_class
                 type="text"
                 placeholder=placeholder
@@ -170,14 +183,21 @@ pub fn Select(
         .collect_view();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
-            <select
-                class="cl-input cl-select"
-                prop:value=move || value.get()
-                on:change=move |e| value.set(event_target_value(&e))
-            >
-                {opts}
-            </select>
+            {
+                let id = field_id();
+                let label_for = id.clone();
+                view! {
+                    {has_label.then(|| view! { <label class="cl-field__label" for=label_for>{label}</label> })}
+                    <select
+                        id=id
+                        class="cl-input cl-select"
+                        prop:value=move || value.get()
+                        on:change=move |e| value.set(event_target_value(&e))
+                    >
+                        {opts}
+                    </select>
+                }
+            }
         </div>
     }
 }
@@ -283,7 +303,9 @@ pub fn PageHeader(
     view! {
         <div class="cl-page-header">
             <div>
-                <div class="cl-page-header__title">{title}</div>
+                // A real heading element: the page title carries the ARIA
+                // heading role for assistive tech and role-based selectors.
+                <h1 class="cl-page-header__title">{title}</h1>
                 {has_sub.then(|| view! { <div class="cl-page-header__sub">{sub}</div> })}
             </div>
             {right.map(|r| r())}
@@ -336,7 +358,10 @@ pub fn Empty(#[prop(into)] message: String) -> impl IntoView {
 }
 
 #[component]
-pub fn ErrorState(error: ApiError, #[prop(optional)] on_retry: Option<Callback<()>>) -> impl IntoView {
+pub fn ErrorState(
+    error: ApiError,
+    #[prop(optional)] on_retry: Option<Callback<()>>,
+) -> impl IntoView {
     let c = classify(&error);
     let style = format!("--alert-color:var({});", c.color_var);
     let code = c.code.clone();
@@ -380,7 +405,11 @@ pub fn Code(children: Children) -> impl IntoView {
 /// Accent text link (Mantine `Anchor`).
 #[component]
 pub fn Anchor(#[prop(optional, into)] href: String, children: Children) -> impl IntoView {
-    let href = if href.is_empty() { "#".to_string() } else { href };
+    let href = if href.is_empty() {
+        "#".to_string()
+    } else {
+        href
+    };
     view! { <a class="cl-anchor" href=href>{children()}</a> }
 }
 
@@ -438,10 +467,7 @@ pub fn Alert(
 
 /// Toggle (Mantine `Switch`), controlled by a bool signal.
 #[component]
-pub fn Switch(
-    checked: RwSignal<bool>,
-    #[prop(optional, into)] label: String,
-) -> impl IntoView {
+pub fn Switch(checked: RwSignal<bool>, #[prop(optional, into)] label: String) -> impl IntoView {
     let has_label = !label.is_empty();
     view! {
         <span
@@ -486,10 +512,13 @@ pub fn Textarea(
     #[prop(default = 4)] rows: i32,
 ) -> impl IntoView {
     let has_label = !label.is_empty();
+    let id = field_id();
+    let label_for = id.clone();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
+            {has_label.then(|| view! { <label class="cl-field__label" for=label_for>{label}</label> })}
             <textarea
+                id=id
                 class="cl-input"
                 rows=rows
                 placeholder=placeholder
@@ -510,13 +539,20 @@ pub fn NumberInput(
     let has_label = !label.is_empty();
     let fmt = move || {
         let v = value.get();
-        if v.fract() == 0.0 { format!("{}", v as i64) } else { format!("{v}") }
+        if v.fract() == 0.0 {
+            format!("{}", v as i64)
+        } else {
+            format!("{v}")
+        }
     };
+    let id = field_id();
+    let label_for = id.clone();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
+            {has_label.then(|| view! { <label class="cl-field__label" for=label_for>{label}</label> })}
             <div class="cl-number">
                 <input
+                    id=id
                     class="cl-input"
                     type="number"
                     prop:value=fmt
@@ -542,11 +578,14 @@ pub fn PasswordInput(
 ) -> impl IntoView {
     let reveal = RwSignal::new(false);
     let has_label = !label.is_empty();
+    let id = field_id();
+    let label_for = id.clone();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
+            {has_label.then(|| view! { <label class="cl-field__label" for=label_for>{label}</label> })}
             <div class="cl-input-wrap">
                 <input
+                    id=id
                     class="cl-input"
                     type=move || if reveal.get() { "text" } else { "password" }
                     placeholder=placeholder
@@ -698,6 +737,10 @@ pub fn CopyButton(#[prop(into)] value: String) -> impl IntoView {
 /// children inside. Set `mono` for tabular monospace cells.
 #[component]
 pub fn Table(#[prop(optional)] mono: bool, children: Children) -> impl IntoView {
-    let class = if mono { "cl-table cl-table--mono" } else { "cl-table" };
+    let class = if mono {
+        "cl-table cl-table--mono"
+    } else {
+        "cl-table"
+    };
     view! { <table class=class>{children()}</table> }
 }
