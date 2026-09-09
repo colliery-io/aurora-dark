@@ -30,6 +30,8 @@ aurora-leptos/       # ★ the design-system crate (published as colliery-io-aur
     components.rs    #   core components (primitives)
     tokens.rs        #   semantic tokens + error classification
     widgets.rs       #   generic data-display widgets (Meter, Banner, …)
+    hlin.rs          #   `hlin` feature: Aurora as a Hlin design pack
+    hlin.css         #     the chrome that module needs, embedded in it
   style/             #   framework-agnostic stylesheet, shipped with the crate
     tokens.css       #     Aurora Dark tokens (colors, spacing, radii, type scale)
     components.css   #     every component's static chrome
@@ -99,6 +101,41 @@ leptos for the host.
 Fonts load from Google Fonts at runtime — self-host if you ship fully offline.
 Prefer `rev`/`tag` over `branch`. See `aurora-leptos/PATTERNS.md` for which
 component to use, and `aurora-leptos/README.md` for the API.
+
+## Drawing a Hlin surface
+
+[Hlin](https://github.com/colliery-io/hlin) is a composition shell over
+independently released platforms: each platform declares what it can show, and
+the shell draws every panel through one design system. The `hlin` feature makes
+Aurora that design system.
+
+```toml
+[dependencies]
+colliery-io-aurora = { version = "0.1", features = ["hlin"] }
+hlin-ui = "0.0.1"
+leptos = { version = "0.8", features = ["csr"] }
+```
+
+```rust
+use aurora_leptos::AuroraPack;
+use hlin_ui::app::App;
+use leptos::prelude::*;
+
+fn main() {
+    leptos::mount::mount_to_body(|| view! { <App pack=AuroraPack /> });
+}
+```
+
+That is a whole Hlin front end. `AuroraPack` implements Hlin's `DesignPack`
+trait — ten methods, no defaults, so a pack that forgets a view kind does not
+compile — and draws panels out of Aurora's own components, tokens and widgets
+rather than a second set that happens to look similar.
+
+The feature is additive and off by default. With it off this crate does not
+know Hlin exists, compiles no extra dependency, and nothing about the default
+build changes.
+
+`HLIN_CSS` carries the chrome the pack needs on top of `AURORA_CSS`.
 
 ## Build & run the gallery
 ```

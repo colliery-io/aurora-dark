@@ -10,7 +10,10 @@ repository = "https://github.com/colliery-io/aurora-dark"
 
 # Ship the stylesheet with the crate so build.rs can emit it (write_css) and the
 # CSS consts are available.
-include = ["src/**/*.rs", "style/*.css", "README.md", "PATTERNS.md"]
+# `src/**/*.css` matters: the `hlin` module embeds a stylesheet next to itself
+# with include_str!, and `src/**/*.rs` does not match it. Without this the crate
+# publishes, and then fails to build for anyone who turns the feature on.
+include = ["src/**/*.rs", "src/**/*.css", "style/*.css", "README.md", "PATTERNS.md"]
 
 [lib]
 name = "aurora_leptos"
@@ -21,6 +24,20 @@ name = "aurora_leptos"
 # use that in [build-dependencies] to emit a normal stylesheet at build time.
 default = ["components"]
 components = ["dep:leptos", "dep:web-sys", "dep:js-sys"]
+
+# Makes this crate a design pack for Hlin: a module implementing `DesignPack`,
+# so a Hlin front end can be drawn with Aurora. Off by default and additive —
+# with it off, this crate has no idea Hlin exists and nothing about the default
+# build changes, which is why the two extra `web-sys` features it needs are
+# named here rather than on the dependency itself.
+hlin = [
+    "dep:hlin-view",
+    "dep:serde_json",
+    "components",
+    "web-sys/Element",
+    "web-sys/DomRect",
+]
+
 # Builds the leptos-free `aurora-css` helper binary (for build hooks).
 bin = []
 
@@ -38,3 +55,11 @@ leptos = { version = "0.8", default-features = false, optional = true }
 web-sys = { version = "0.3", features = ["Window", "Navigator", "Clipboard"], optional = true }
 # "Time ago" / freshness helpers (Date.now) for the data-display widgets.
 js-sys = { version = "0.3", optional = true }
+
+# Hlin's rendering vocabulary, for the `hlin` feature. Taken without its default
+# features: a design pack draws envelopes and never computes a contract
+# fingerprint, so it needs none of the hashing half.
+hlin-view = { version = "0.0.1", default-features = false, optional = true }
+# Envelopes are JSON documents; `raw` shows one and `stat` reads a value out of
+# one. Only needed by the `hlin` feature.
+serde_json = { version = "1", optional = true }

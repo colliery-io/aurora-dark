@@ -104,3 +104,10 @@ mod styles {
 }
 #[cfg(feature = "components")]
 pub use styles::AuroraStyles;
+
+// Aurora as a Hlin design pack. Additive and off by default: with the feature
+// off, nothing here is compiled and this crate does not know Hlin exists.
+#[cfg(feature = "hlin")]
+pub mod hlin;
+#[cfg(feature = "hlin")]
+pub use hlin::{AuroraPack, HLIN_CSS};
