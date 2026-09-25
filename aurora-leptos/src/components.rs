@@ -9,6 +9,27 @@ use leptos::prelude::*;
 
 use crate::tokens::{classify, pill_bg, ApiError};
 
+/// A unique `id` for one field instance, so a `<label for=…>` can point at its
+/// control.
+///
+/// Leptos has no `useId`, so the counter lives here. A process-wide
+/// `AtomicUsize` is enough: ids only have to be unique within a document, and a
+/// CSR bundle is one document. Server-side rendering would want the id to be
+/// stable across the render/hydrate pair — it is, because both passes call this
+/// in the same order.
+///
+/// Why this exists at all: every labelled field in this library rendered a
+/// `<label>` with no `for` and a control with no `id`, so the accessible name of
+/// every text input, select and textarea built with Aurora was **empty**. A
+/// screen reader announced an unlabelled field; clicking the label did nothing.
+/// Found when a Kairos end-to-end test reached for Playwright's `getByLabel` and
+/// timed out while everything around it resolved (KAIROS-T-0198).
+fn field_id() -> String {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    static NEXT: AtomicUsize = AtomicUsize::new(0);
+    format!("cl-field-{}", NEXT.fetch_add(1, Ordering::Relaxed))
+}
+
 // ----------------------------------------------------------------------------
 // Layout: Group / Stack
 // ----------------------------------------------------------------------------
@@ -142,11 +163,15 @@ pub fn TextInput(
     }
     let has_label = !label.is_empty();
     let has_error = !error.is_empty();
+    let id = field_id();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
+            {has_label.then(|| view! {
+                <label class="cl-field__label" for=id.clone()>{label}</label>
+            })}
             <input
                 class=input_class
+                id=id
                 type="text"
                 placeholder=placeholder
                 prop:value=move || value.get()
@@ -168,11 +193,15 @@ pub fn Select(
         .into_iter()
         .map(|opt| view! { <option value=opt.clone()>{opt.clone()}</option> })
         .collect_view();
+    let id = field_id();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
+            {has_label.then(|| view! {
+                <label class="cl-field__label" for=id.clone()>{label}</label>
+            })}
             <select
                 class="cl-input cl-select"
+                id=id
                 prop:value=move || value.get()
                 on:change=move |e| value.set(event_target_value(&e))
             >
@@ -437,6 +466,18 @@ pub fn Alert(
 }
 
 /// Toggle (Mantine `Switch`), controlled by a bool signal.
+///
+/// A real `<button role="switch">`, not a clickable `<span>` — which is what this
+/// was (KAIROS-T-0198). The span version had a worse problem than the missing
+/// label association that ticket was filed about: it was not a control at all. No
+/// role, no state, not focusable, not keyboard-operable. A keyboard user could not
+/// toggle it and a screen reader saw two pieces of decorative text.
+///
+/// A `<button>` gets focus, Enter and Space for free; `role="switch"` plus
+/// `aria-checked` gives it the on/off state; and the label lives INSIDE the
+/// button, which makes it the accessible name with no `for`/`id` needed. The
+/// label is also then part of the click target, which it always looked like it
+/// was.
 #[component]
 pub fn Switch(
     checked: RwSignal<bool>,
@@ -444,14 +485,17 @@ pub fn Switch(
 ) -> impl IntoView {
     let has_label = !label.is_empty();
     view! {
-        <span
+        <button
+            type="button"
+            role="switch"
             class="cl-switch"
             class:cl-switch--on=move || checked.get()
+            aria-checked=move || if checked.get() { "true" } else { "false" }
             on:click=move |_| checked.update(|v| *v = !*v)
         >
             <span class="cl-switch__track"><span class="cl-switch__thumb"></span></span>
             {has_label.then(|| view! { <span class="cl-text cl-text--sm">{label}</span> })}
-        </span>
+        </button>
     }
 }
 
@@ -462,11 +506,17 @@ pub fn SegmentedControl(options: Vec<String>, value: RwSignal<String>) -> impl I
         .into_iter()
         .map(|opt| {
             let o = opt.clone();
+            let o_aria = opt.clone();
             let o2 = opt.clone();
             view! {
                 <button
+                    type="button"
                     class="cl-segmented__item"
                     class:cl-segmented__item--active=move || value.get() == o
+                    // KAIROS-T-0198: these were already real buttons, so focus and
+                    // keyboard worked — but WHICH one is selected was conveyed by
+                    // colour alone. aria-pressed says it out loud.
+                    aria-pressed=move || if value.get() == o_aria { "true" } else { "false" }
                     on:click=move |_| value.set(o2.clone())
                 >
                     {opt}
@@ -486,11 +536,15 @@ pub fn Textarea(
     #[prop(default = 4)] rows: i32,
 ) -> impl IntoView {
     let has_label = !label.is_empty();
+    let id = field_id();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
+            {has_label.then(|| view! {
+                <label class="cl-field__label" for=id.clone()>{label}</label>
+            })}
             <textarea
                 class="cl-input"
+                id=id
                 rows=rows
                 placeholder=placeholder
                 prop:value=move || value.get()
@@ -512,12 +566,16 @@ pub fn NumberInput(
         let v = value.get();
         if v.fract() == 0.0 { format!("{}", v as i64) } else { format!("{v}") }
     };
+    let id = field_id();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
+            {has_label.then(|| view! {
+                <label class="cl-field__label" for=id.clone()>{label}</label>
+            })}
             <div class="cl-number">
                 <input
                     class="cl-input"
+                    id=id
                     type="number"
                     prop:value=fmt
                     on:input=move |e| {
@@ -525,8 +583,20 @@ pub fn NumberInput(
                     }
                 />
                 <div class="cl-number__steps">
-                    <button class="cl-number__step" on:click=move |_| value.update(|v| *v += step)>"▲"</button>
-                    <button class="cl-number__step" on:click=move |_| value.update(|v| *v -= step)>"▼"</button>
+                    // KAIROS-T-0198: type="button" so they do not submit a
+                    // surrounding form, and named, because "▲" is not a name.
+                    <button
+                        type="button"
+                        class="cl-number__step"
+                        aria-label="Increase"
+                        on:click=move |_| value.update(|v| *v += step)
+                    >"▲"</button>
+                    <button
+                        type="button"
+                        class="cl-number__step"
+                        aria-label="Decrease"
+                        on:click=move |_| value.update(|v| *v -= step)
+                    >"▼"</button>
                 </div>
             </div>
         </div>
@@ -542,12 +612,16 @@ pub fn PasswordInput(
 ) -> impl IntoView {
     let reveal = RwSignal::new(false);
     let has_label = !label.is_empty();
+    let id = field_id();
     view! {
         <div class="cl-field">
-            {has_label.then(|| view! { <label class="cl-field__label">{label}</label> })}
+            {has_label.then(|| view! {
+                <label class="cl-field__label" for=id.clone()>{label}</label>
+            })}
             <div class="cl-input-wrap">
                 <input
                     class="cl-input"
+                    id=id
                     type=move || if reveal.get() { "text" } else { "password" }
                     placeholder=placeholder
                     prop:value=move || value.get()
@@ -700,4 +774,41 @@ pub fn CopyButton(#[prop(into)] value: String) -> impl IntoView {
 pub fn Table(#[prop(optional)] mono: bool, children: Children) -> impl IntoView {
     let class = if mono { "cl-table cl-table--mono" } else { "cl-table" };
     view! { <table class=class>{children()}</table> }
+}
+
+#[cfg(test)]
+mod a11y_tests {
+    //! KAIROS-T-0198: labels are associated with their controls.
+    //!
+    //! These assert the mechanism rather than the rendered DOM — rendering a
+    //! Leptos component needs a browser runtime, and the thing that broke was not
+    //! the markup shape but the absence of an id to point a `for` at.
+
+    use super::field_id;
+    use std::collections::BTreeSet;
+
+    #[test]
+    fn every_field_gets_its_own_id() {
+        // The bug this prevents is subtler than "no id": two fields sharing one
+        // would make a label point at the wrong control, which is worse than
+        // pointing at nothing because it looks correct.
+        let ids: BTreeSet<String> = (0..1000).map(|_| field_id()).collect();
+        assert_eq!(ids.len(), 1000, "field ids must be unique");
+    }
+
+    #[test]
+    fn ids_are_valid_html_identifiers() {
+        // An id starting with a digit, or containing a space, is not addressable
+        // by `for=` in every browser. The prefix is there for that reason, not
+        // for decoration.
+        let id = field_id();
+        assert!(
+            id.starts_with("cl-field-"),
+            "unexpected id shape: {id}"
+        );
+        assert!(
+            id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-'),
+            "id must be a plain HTML identifier: {id}"
+        );
+    }
 }

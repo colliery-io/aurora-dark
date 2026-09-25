@@ -228,7 +228,17 @@ textarea.cl-input { height: auto; padding: 8px 12px; line-height: 1.5; resize: v
 .cl-segmented__item--active { background: var(--control); color: var(--fg-bright); }
 
 /* Switch */
-.cl-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+/* KAIROS-T-0198: .cl-switch is a <button> now, not a <span>, so the browser's
+   button styling has to be undone to keep it looking identical. `font: inherit`
+   matters as much as the rest — a button does not inherit font-family. */
+.cl-switch {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; color: inherit; text-align: left;
+}
+.cl-switch:focus-visible {
+  outline: 2px solid var(--ice); outline-offset: 2px; border-radius: 4px;
+}
 .cl-switch__track {
   width: 36px; height: 20px; border-radius: 20px;
   background: var(--control); border: 1px solid var(--border-control);
